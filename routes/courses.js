@@ -8,13 +8,13 @@ const { check } = require('express-validator');
 const { validateFields } = require('../middlewares/validateFields');
 
 const { validateJWT } = require('../middlewares/validateJWT');
-const { getCourses, createCourses, updateCourses, deleteCourses } = require('../controllers/courses');
+const { getCourseByTeacher, createCourses, updateCourses, deleteCourses } = require('../controllers/courses');
 
 const router = express.Router();
 router.use(validateJWT);
 
 
-router.get('/getCourses', getCourses);
+router.get('/getCourseByTeacher', getCourseByTeacher);
 
 router.post(
     '/createCourses',

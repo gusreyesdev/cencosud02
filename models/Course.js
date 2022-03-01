@@ -22,6 +22,11 @@ const CourseSchema = Schema(
             type: String,
             required: true
         },
+        teacher: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
         students: [StudentSchema]
     }, { timestamps: true }
 );

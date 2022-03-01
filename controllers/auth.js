@@ -72,7 +72,7 @@ const login = async (req, res = response) => {
         if (!user) {
             return res.status(400).json({
                 ok: false,
-                msg: 'Correo o Contraseña no son correcto'
+                msg: 'Correo o Contraseña no son correctos'
             });
         }
 
@@ -116,6 +116,8 @@ const reviveToken = async (req, res = response) => {
 
     res.json({
         ok: true,
+        id,
+        name,
         token
     });
 

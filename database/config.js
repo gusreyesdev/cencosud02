@@ -8,7 +8,6 @@ const connectionDB = async() => {
 
         console.log("db online");
 
-        
     } catch (error) {
         console.log("error connection ", error);
         throw new Error('Error a la hora de conectarse Bd');

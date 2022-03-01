@@ -3,15 +3,22 @@ const Course = require('../models/Course');
 
 
 
-const getCourses = async (req, res = response) => {
+const getCourseByTeacher = async (req, res = response) => {
 
     try {
 
-        const courses = await Course.find().populate('students.student', 'name');
+        const course = await Course.find({ teacher: req.id }).populate('students.student', 'name');
+
+        if (!course) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'No tiene cursos creados'
+            });
+        }
 
         res.status(200).json({
             ok: true,
-            courses
+            course
         });
 
     } catch (error) {
@@ -28,12 +35,22 @@ const getCourses = async (req, res = response) => {
 
 const createCourses = async (req, res = response) => {
 
-    const { students } = req.body;
+    const { name, students } = req.body;
 
     try {
 
-        const course = new Course(req.body);
+        let course = await Course.findOne({ name });
 
+        if (course) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'El Curso ya existe'
+            });
+        }
+
+        course = new Course(req.body);
+
+        course.teacher = req.id;
         course.students = students;
 
         const courseSaved = await course.save();
@@ -72,10 +89,10 @@ const updateCourses = async (req, res = response) => {
         }
 
         const courseUpdate = await Course.findByIdAndUpdate(id,
-            {$set: {"students.$[el].note":students[0].note}},
-            {   
-                arrayFilters: [{"el.student": students[0].student }],
-                new: true 
+            { $set: { "students.$[el].note": students[0].note } },
+            {
+                arrayFilters: [{ "el.student": students[0].student }],
+                new: true
             }
         );
 
@@ -118,8 +135,8 @@ const deleteCourses = async (req, res = response) => {
             ok: true,
             msg: "Curso Eliminado"
         });
-        
-        
+
+
     } catch (error) {
 
         console.log("error ", error);
@@ -128,14 +145,14 @@ const deleteCourses = async (req, res = response) => {
             ok: false,
             msg: 'Por favor hable con el administrador'
         });
-        
+
     }
 
 };
 
 
 module.exports = {
-    getCourses,
+    getCourseByTeacher,
     createCourses,
     updateCourses,
     deleteCourses
