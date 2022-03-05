@@ -9,7 +9,7 @@ const StudentSchema = Schema(
             required: true
 
         },
-        note: {
+        grade: {
             type: String
         }
     }

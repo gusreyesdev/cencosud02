@@ -1,4 +1,5 @@
 const { response } = require('express');
+const { default: mongoose } = require('mongoose');
 const Course = require('../models/Course');
 
 
@@ -23,7 +24,67 @@ const getCourseByTeacher = async (req, res = response) => {
 
     } catch (error) {
 
-        console.log("error ", error);
+        console.log("error getCourseByTeacher ", error);
+
+        res.status(500).json({
+            ok: false,
+            msg: 'Por favor hable con el administrador'
+        });
+    }
+};
+
+
+const getCourseByStudent = async (req, res = response) => {
+
+    try {
+    
+        const course = await Course.find({}, { name: { $cond: { if: { $in: [{ $toObjectId: req.id }, "$students.student"] }, then: "$name", else: "$$REMOVE" } }, students: { $elemMatch: { student: req.id } } }).populate('students.student', 'name');
+
+        if (!course) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'No tiene cursos asignados'
+            });
+        }
+
+        res.status(200).json({
+            ok: true,
+            course
+        });
+
+    } catch (error) {
+
+        console.log("error getCourseByStudent ", error);
+
+        res.status(500).json({
+            ok: false,
+            msg: 'Por favor hable con el administrador'
+        });
+    }
+
+
+}
+
+
+
+
+
+const getCourseById = async (req, res = response) => {
+
+    const { id } = req.params;
+
+    try {
+
+        const course = await Course.findById(id).populate('students.student', 'name');
+
+        res.status(200).json({
+            ok: true,
+            course
+        });
+
+    } catch (error) {
+
+        console.log("error getCourseById ", error);
 
         res.status(500).json({
             ok: false,
@@ -31,7 +92,10 @@ const getCourseByTeacher = async (req, res = response) => {
         });
 
     }
-};
+
+
+}
+
 
 const createCourses = async (req, res = response) => {
 
@@ -62,7 +126,7 @@ const createCourses = async (req, res = response) => {
 
 
     } catch (error) {
-        console.log("error ", error);
+        console.log("error createCourses ", error);
 
         res.status(500).json({
             ok: false,
@@ -89,22 +153,23 @@ const updateCourses = async (req, res = response) => {
         }
 
         const courseUpdate = await Course.findByIdAndUpdate(id,
-            { $set: { "students.$[el].note": students[0].note } },
+            { $set: { 'students.$[course].grade': students[0].grade } },
             {
-                arrayFilters: [{ "el.student": students[0].student }],
+                arrayFilters: [{ 'course.student': students[0].student }],
                 new: true
             }
         );
 
         res.status(200).json({
             ok: true,
-            msg: "Nota actualizada"
+            course: courseUpdate,
+            msg: "Calificacion actualizada"
         });
 
 
     } catch (error) {
 
-        console.log("error ", error);
+        console.log("error updateCourses", error);
 
         res.status(500).json({
             ok: false,
@@ -139,7 +204,7 @@ const deleteCourses = async (req, res = response) => {
 
     } catch (error) {
 
-        console.log("error ", error);
+        console.log("error deleteCourses ", error);
 
         res.status(500).json({
             ok: false,
@@ -153,6 +218,8 @@ const deleteCourses = async (req, res = response) => {
 
 module.exports = {
     getCourseByTeacher,
+    getCourseByStudent,
+    getCourseById,
     createCourses,
     updateCourses,
     deleteCourses

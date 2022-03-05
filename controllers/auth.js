@@ -11,7 +11,7 @@ const newUser = async (req, res = response) => {
 
     try {
 
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ email }).populate('profile','name');
 
         let profile = await Profile.findOne({ name: profile_name });
 
@@ -31,7 +31,7 @@ const newUser = async (req, res = response) => {
 
         user = new User(req.body);
 
-        /*Encriptar la contraseña */
+        /*Encriptar contraseña */
         const salt = bcrypt.genSaltSync();
         user.password = bcrypt.hashSync(password, salt);
         
@@ -40,17 +40,18 @@ const newUser = async (req, res = response) => {
         await user.save();
 
         /** Generar token */
-        const token = await generateJWT(user.id, user.name);
+        const token = await generateJWT(user.id, user.name, profile);
 
         res.status(201).json({
             ok: true,
             id: user.id,
             name: user.name,
+            profile: profile,
             token
         });
 
     } catch (error) {
-        console.log("error ", error);
+        console.log("error new User ", error);
 
         res.status(500).json({
             ok: false,
@@ -67,7 +68,7 @@ const login = async (req, res = response) => {
 
     try {
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).populate('profile','name');
 
         if (!user) {
             return res.status(400).json({
@@ -87,17 +88,18 @@ const login = async (req, res = response) => {
         }
 
         /** Generar token */
-        const token = await generateJWT(user.id, user.name);
+        const token = await generateJWT(user.id, user.name, user.profile);
 
         res.status(200).json({
             ok: true,
             id: user.id,
             name: user.name,
+            profile: user.profile,
             token
         });
 
     } catch (error) {
-        console.log("error ", error);
+        console.log("error login", error);
 
         res.status(500).json({
             ok: false,
@@ -110,7 +112,7 @@ const login = async (req, res = response) => {
 
 const reviveToken = async (req, res = response) => {
 
-    const { id, name } = req;
+    const { id, name, profile } = req;
 
     const token = await generateJWT(id, name);
 
@@ -118,6 +120,7 @@ const reviveToken = async (req, res = response) => {
         ok: true,
         id,
         name,
+        profile,
         token
     });
 

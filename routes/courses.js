@@ -8,13 +8,17 @@ const { check } = require('express-validator');
 const { validateFields } = require('../middlewares/validateFields');
 
 const { validateJWT } = require('../middlewares/validateJWT');
-const { getCourseByTeacher, createCourses, updateCourses, deleteCourses } = require('../controllers/courses');
+const { getCourseByTeacher, getCourseByStudent, getCourseById, createCourses, updateCourses, deleteCourses } = require('../controllers/courses');
 
 const router = express.Router();
 router.use(validateJWT);
 
 
 router.get('/getCourseByTeacher', getCourseByTeacher);
+
+router.get('/getCourseByStudent', getCourseByStudent);
+
+router.get('/getCourseById/:id', getCourseById);
 
 router.post(
     '/createCourses',
@@ -31,7 +35,7 @@ router.put(
     [
         check('name', 'El nombre es Obligatorio').not().isEmpty(),
         check('students.*.student', 'El estudiante es Obligatorios').not().isEmpty(),
-        check('students.*.note', 'La nota es Obligatoria').not().isEmpty(),
+        check('students.*.grade', 'La calificacion es Obligatoria').not().isEmpty(),
         validateFields
     ],
     updateCourses
